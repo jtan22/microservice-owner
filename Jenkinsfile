@@ -52,6 +52,7 @@ pipeline {
                 branch 'main'
             }
             steps {
+                sh 'git checkout main'
                 sh 'mvn build-helper:parse-version versions:set \
                     -DnewVersion=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed -e "s/-SNAPSHOT//" -e "s/\\([0-9]*\\.[0-9]*\\.[0-9]*\\)/\\1+1/"`-SNAPSHOT versions:commit'
                 sh 'git commit -am "Increment version [skip ci]"'
