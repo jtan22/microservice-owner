@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microservice-owner
+  labels:
+    app: microservice-owner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microservice-owner
+  template:
+    metadata:
+      labels:
+        app: microservice-owner
+    spec:
+      containers:
+        - name: microservice-owner
+          image: jtan22/microservice-owner:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: DB_URL
+              value: jdbc:mysql://host.docker.internal/petclinic
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: microservice-owner
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8081
+  selector:
+    app: microservice-owner
