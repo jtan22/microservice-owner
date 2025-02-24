@@ -43,7 +43,7 @@ pipeline {
         }
         stage('Deploy Image') {
             steps {
-                sh "sed -i '' 's/${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml"
+                sh "sed -i '' 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml"
                 sh 'kubectl apply -f deployment.yaml'
             }
         }
