@@ -15,8 +15,7 @@ pipeline {
         stage('Get Project Version') {
             steps {
                 script {
-                    def pom = readMavenPom file: 'pom.xml'
-                    env.PROJECT_VERSION = pom.version
+                    env.PROJECT_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
                     if (env.BRANCH_NAME == 'main') {
                         env.PROJECT_VERSION = env.PROJECT_VERSION.replace('-SNAPSHOT', '')
                     }
