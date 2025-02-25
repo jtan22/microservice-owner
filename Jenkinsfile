@@ -52,16 +52,15 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'echo "Project version: ${env.PROJECT_VERSION}"'
-                    def newVersion = env.PROJECT_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)/) {
-                        match, major, minor, patch ->
-                            return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
+                    def projectVersion = env.PROJECT_VERSION
+                    def newVersion = projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match, major, minor, patch ->
+                        return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
                     sh 'git checkout main'
                     sh "mvn versions:set -DnewVersion=${newVersion}"
                     sh "mvn versions:commit"
                     sh 'git add pom.xml'
-                    sh 'git commit -m "Increment version to ${newVersion}"'
+                    sh "git commit -m 'Increment version to ${newVersion}'"
                     sh 'git push origin main'
                 }
             }
