@@ -22,38 +22,38 @@ pipeline {
                 }
             }
         }
-        stage('Build Image') {
-            steps {
-                script {
-                    app = docker.build("${DOCKERHUB_REPO}:${env.PROJECT_VERSION}")
-                }
-            }
-        }
-        stage('Push Image') {
-            steps {
-                script {
-                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIAL) {
-                        app.push("${env.PROJECT_VERSION}")
-                        if (env.BRANCH_NAME == 'main') {
-                            app.push("latest")
-                        }
-                    }
-                }
-            }
-        }
-        stage('Deploy Image') {
-            steps {
-                sh "sed 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml | kubectl apply -f -"
-            }
-        }
+//         stage('Build Image') {
+//             steps {
+//                 script {
+//                     app = docker.build("${DOCKERHUB_REPO}:${env.PROJECT_VERSION}")
+//                 }
+//             }
+//         }
+//         stage('Push Image') {
+//             steps {
+//                 script {
+//                     docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIAL) {
+//                         app.push("${env.PROJECT_VERSION}")
+//                         if (env.BRANCH_NAME == 'main') {
+//                             app.push("latest")
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         stage('Deploy Image') {
+//             steps {
+//                 sh "sed 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml | kubectl apply -f -"
+//             }
+//         }
         stage('Increment Version') {
             when {
                 branch 'main'
             }
             steps {
                 script {
-                    sh 'echo [${env.PROJECT_VERSION}]'
-                    def newVersion = env.projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)/) {
+                    sh 'echo "Project version: ${env.PROJECT_VERSION}"'
+                    def newVersion = env.PROJECT_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)/) {
                         match, major, minor, patch ->
                             return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
