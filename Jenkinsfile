@@ -53,9 +53,10 @@ pipeline {
             steps {
                 script {
                     def projectVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    def newVersion = projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)-SNAPSHOT/) { fullMatch, major, minor, patch ->
+                    def newVersion = projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)-SNAPSHOT/) { match ->
+                        def (major, minor, patch) = [match[1], match[2], match[3]]
                         println "projectVersion: ${projectVersion}"
-                        println "fullMatch: ${fullMatch}"
+                        println "fullMatch: ${match[0]}"
                         println "major: ${major}"
                         println "minor: ${minor}"
                         println "patch: ${patch}"
