@@ -43,8 +43,7 @@ pipeline {
         }
         stage('Deploy Image') {
             steps {
-                sh "sed -i '' 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml"
-                sh 'kubectl apply -f deployment.yaml'
+                sh "sed 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml | kubectl apply -f -"
             }
         }
         stage('Increment Version') {
@@ -53,9 +52,7 @@ pipeline {
             }
             steps {
                 sh 'git checkout main'
-                sh 'mvn build-helper:parse-version versions:set \
-                    -DnewVersion=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed -e "s/-SNAPSHOT//" -e "s/\\([0-9]*\\.[0-9]*\\.[0-9]*\\)/\\1+1/"`-SNAPSHOT versions:commit'
-                sh 'git commit -am "Increment version [skip ci]"'
+                sh 'mvn release:prepare release:perform -B'
                 sh 'git push origin main'
             }
         }
