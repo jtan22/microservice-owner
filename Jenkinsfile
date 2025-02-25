@@ -53,8 +53,7 @@ pipeline {
             steps {
                 script {
                     def projectVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    error("Project version ${projectVersion}")
-                    def newVersion = projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match, major, minor, patch ->
+                    def newVersion = projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)-SNAPSHOT/) { match, major, minor, patch ->
                         return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
                     sh 'git checkout main'
