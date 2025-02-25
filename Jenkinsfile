@@ -51,8 +51,15 @@ pipeline {
                 branch 'main'
             }
             steps {
+                def newVersion = ${env.PROJECT_VERSION}.replaceAll(/(\d+\.\d+\.\d+)-SNAPSHOT/, { match, version ->
+                    def (major, minor, patch) = version.split('\\.')
+                    return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
+                })
                 sh 'git checkout main'
-                sh 'mvn release:prepare release:perform -B'
+                sh "mvn versions:set -DnewVersion=${newVersion}"
+                sh "mvn versions:commit"
+                sh 'git add pom.xml'
+                sh 'git commit -m "Increment version to ${newVersion}"'
                 sh 'git push origin main'
             }
         }
