@@ -52,7 +52,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'echo project version: [${env.PROJECT_VERSION}]'
+                    sh 'echo [${env.PROJECT_VERSION}]'
                     def newVersion = env.projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)/) {
                         match, major, minor, patch ->
                             return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
