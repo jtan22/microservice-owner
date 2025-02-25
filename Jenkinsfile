@@ -54,11 +54,11 @@ pipeline {
                 script {
                     def newVersion = env.PROJECT_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)-SNAPSHOT/) { match ->
                         def (major, minor, patch) = [match[1], match[2], match[3]]
-                        println "projectVersion: ${env.PROJECT_VERSION}"
-                        println "fullMatch: ${match[0]}"
-                        println "major: ${major}"
-                        println "minor: ${minor}"
-                        println "patch: ${patch}"
+                        echo "projectVersion: ${env.PROJECT_VERSION}"
+                        echo "fullMatch: ${match[0]}"
+                        echo "major: ${major}"
+                        echo "minor: ${minor}"
+                        echo "patch: ${patch}"
                         return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
                     sh 'git checkout main'
