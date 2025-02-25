@@ -62,8 +62,6 @@ pipeline {
                         return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
                     sh 'git checkout main'
-                    sh 'git config pull.rebase false'
-                    sh 'git pull'
                     sh "mvn versions:set -DnewVersion=${newVersion}"
                     sh "mvn versions:commit"
                     sh 'git add pom.xml'
