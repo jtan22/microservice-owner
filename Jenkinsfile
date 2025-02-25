@@ -52,7 +52,7 @@ pipeline {
             }
             steps {
                 script {
-                    def newVersion = env.PROJECT_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match, major, minor, patch ->
+                    def newVersion = ${env.PROJECT_VERSION}.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match, major, minor, patch ->
                         return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
                     sh 'git checkout main'
