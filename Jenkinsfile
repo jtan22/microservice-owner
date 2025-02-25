@@ -16,8 +16,9 @@ pipeline {
             steps {
                 script {
                     env.PROJECT_VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    env.DOCKER_VERSION = env.PROJECT_VERSION
                     if (env.BRANCH_NAME == 'main') {
-                        env.PROJECT_VERSION = env.PROJECT_VERSION.replace('-SNAPSHOT', '')
+                        env.DOCKER_VERSION = env.PROJECT_VERSION.replace('-SNAPSHOT', '')
                     }
                 }
             }
@@ -25,7 +26,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 script {
-                    app = docker.build("${DOCKERHUB_REPO}:${env.PROJECT_VERSION}")
+                    app = docker.build("${DOCKERHUB_REPO}:${env.DOCKER_VERSION}", "--build-arg JAR_FILE_VERSION=${env.PROJECT_VERSION} .")
                 }
             }
         }
@@ -33,7 +34,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIAL) {
-                        app.push("${env.PROJECT_VERSION}")
+                        app.push("${env.DOCKER_VERSION}")
                         if (env.BRANCH_NAME == 'main') {
                             app.push("latest")
                         }
@@ -43,7 +44,7 @@ pipeline {
         }
         stage('Deploy Image') {
             steps {
-                sh "sed 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml | kubectl apply -f -"
+                sh "sed 's/\${PROJECT_VERSION}/${env.DOCKER_VERSION}/g' deployment.yaml | kubectl apply -f -"
             }
         }
         stage('Increment Version') {
@@ -52,7 +53,7 @@ pipeline {
             }
             steps {
                 script {
-                    def newVersion = env.PROJECT_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match ->
+                    def newVersion = env.DOCKER_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match ->
                         def (major, minor, patch) = [match[1], match[2], match[3]]
                         println "patch: ${patch}"
                         return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
