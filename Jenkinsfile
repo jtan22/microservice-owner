@@ -22,30 +22,30 @@ pipeline {
                 }
             }
         }
-//         stage('Build Image') {
-//             steps {
-//                 script {
-//                     app = docker.build("${DOCKERHUB_REPO}:${env.PROJECT_VERSION}")
-//                 }
-//             }
-//         }
-//         stage('Push Image') {
-//             steps {
-//                 script {
-//                     docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIAL) {
-//                         app.push("${env.PROJECT_VERSION}")
-//                         if (env.BRANCH_NAME == 'main') {
-//                             app.push("latest")
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//         stage('Deploy Image') {
-//             steps {
-//                 sh "sed 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml | kubectl apply -f -"
-//             }
-//         }
+        stage('Build Image') {
+            steps {
+                script {
+                    app = docker.build("${DOCKERHUB_REPO}:${env.PROJECT_VERSION}")
+                }
+            }
+        }
+        stage('Push Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIAL) {
+                        app.push("${env.PROJECT_VERSION}")
+                        if (env.BRANCH_NAME == 'main') {
+                            app.push("latest")
+                        }
+                    }
+                }
+            }
+        }
+        stage('Deploy Image') {
+            steps {
+                sh "sed 's/\${PROJECT_VERSION}/${env.PROJECT_VERSION}/g' deployment.yaml | kubectl apply -f -"
+            }
+        }
         stage('Increment Version') {
             when {
                 branch 'main'
@@ -54,10 +54,6 @@ pipeline {
                 script {
                     def newVersion = env.PROJECT_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match ->
                         def (major, minor, patch) = [match[1], match[2], match[3]]
-                        println "projectVersion: ${env.PROJECT_VERSION}"
-                        println "fullMatch: ${match[0]}"
-                        println "major: ${major}"
-                        println "minor: ${minor}"
                         println "patch: ${patch}"
                         return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
