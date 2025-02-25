@@ -1,15 +1,19 @@
 package com.bw.owner.controller;
 
 import com.bw.owner.domain.Owner;
+import com.bw.owner.exception.OwnerNotFoundException;
 import com.bw.owner.repository.OwnerRepository;
 import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -32,6 +36,34 @@ public class OwnerController {
         } else {
             return ownerRepository.findByLastName(pageable, lastName);
         }
+    }
+
+    @GetMapping("/owners/{id}")
+    public Owner findById(@PathVariable("id") int id) {
+        log.info("GET findById id [{}]", id);
+        Optional<Owner> ownerOptional = ownerRepository.findById(id);
+        if (ownerOptional.isPresent()) {
+            return ownerOptional.get();
+        }
+        throw new OwnerNotFoundException("Owner [" + id + "] not found");
+    }
+
+    @ExceptionHandler(OwnerNotFoundException.class)
+    public ResponseEntity<String> handleNotFound(OwnerNotFoundException ex) {
+        log.info("Caught owner not found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found [" + ex.getMessage() + "]");
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.info("Caught type mismatch");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad request [" + ex.getMessage() + "]");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception ex) {
+        log.error("Caught internal error", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Error [" + ex.getMessage() + "]");
     }
 
 }

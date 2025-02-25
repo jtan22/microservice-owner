@@ -13,13 +13,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @WebMvcTest(OwnerController.class)
 public class OwnerControllerUnitTest {
@@ -60,6 +61,33 @@ public class OwnerControllerUnitTest {
                 .andExpect(jsonPath("$.totalElements", is(2)))
                 .andExpect(jsonPath("$.number", is(0)))
                 .andExpect(jsonPath("$.size", is(5)));
+    }
+
+    @Test
+    public void testFindById() throws Exception {
+        Owner owner = new Owner();
+        owner.setId(1);
+        when(ownerRepository.findById(1)).thenReturn(Optional.of(owner));
+        mockMvc
+                .perform(get("/owners/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)));
+    }
+
+    @Test
+    public void testFindByIdNotFound() throws Exception {
+        mockMvc
+                .perform(get("/owners/10000"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Not found [Owner [10000] not found]"));
+    }
+
+    @Test
+    public void testFindByIdTypeMismatch() throws Exception {
+        mockMvc
+                .perform(get("/owners/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Bad request [Failed to convert value of type 'java.lang.String' to required type 'int'; For input string: \"abc\"]"));
     }
 
 }
