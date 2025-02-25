@@ -52,10 +52,9 @@ pipeline {
             }
             steps {
                 script {
-                    def projectVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
-                    def newVersion = projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)-SNAPSHOT/) { match ->
+                    def newVersion = env.PROJECT_VERSION.replaceAll(/(\d+)\.(\d+)\.(\d+)-SNAPSHOT/) { match ->
                         def (major, minor, patch) = [match[1], match[2], match[3]]
-                        println "projectVersion: ${projectVersion}"
+                        println "projectVersion: ${env.PROJECT_VERSION}"
                         println "fullMatch: ${match[0]}"
                         println "major: ${major}"
                         println "minor: ${minor}"
@@ -63,6 +62,7 @@ pipeline {
                         return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
                     sh 'git checkout main'
+                    sh 'git pull'
                     sh "mvn versions:set -DnewVersion=${newVersion}"
                     sh "mvn versions:commit"
                     sh 'git add pom.xml'
