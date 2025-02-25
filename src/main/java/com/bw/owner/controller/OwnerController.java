@@ -4,16 +4,20 @@ import com.bw.owner.domain.Owner;
 import com.bw.owner.exception.OwnerNotFoundException;
 import com.bw.owner.repository.OwnerRepository;
 import io.micrometer.common.util.StringUtils;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -46,6 +50,24 @@ public class OwnerController {
             return ownerOptional.get();
         }
         throw new OwnerNotFoundException("Owner [" + id + "] not found");
+    }
+
+    @PostMapping("/owners")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Owner add(@RequestBody @Valid Owner owner) {
+        log.info("POST add " + owner);
+        return ownerRepository.save(owner);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleNotValid(MethodArgumentNotValidException ex) {
+        log.info("Caught not valid");
+        String message = ex
+                .getAllErrors()
+                .stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(","));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad request [" + message + "]");
     }
 
     @ExceptionHandler(OwnerNotFoundException.class)
