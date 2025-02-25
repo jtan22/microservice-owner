@@ -52,8 +52,11 @@ pipeline {
             }
             steps {
                 script {
-                    def newVersion = ${env.PROJECT_VERSION}.replaceAll(/(\d+)\.(\d+)\.(\d+)/) { match, major, minor, patch ->
-                        return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
+                    projectVersion = sh(script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout", returnStdout: true).trim()
+                    sh 'echo ${projectVersion}'
+                    def newVersion = projectVersion.replaceAll(/(\d+)\.(\d+)\.(\d+)/) {
+                        match, major, minor, patch ->
+                            return "${major}.${minor}.${(patch.toInteger() + 1)}-SNAPSHOT"
                     }
                     sh 'git checkout main'
                     sh "mvn versions:set -DnewVersion=${newVersion}"
