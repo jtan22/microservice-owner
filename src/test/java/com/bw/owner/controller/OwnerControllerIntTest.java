@@ -12,8 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
@@ -113,6 +113,41 @@ public class OwnerControllerIntTest {
                         .content(objectMapper.writeValueAsBytes(owner)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Bad request [Owner telephone must be 10 digits]"));
+    }
+
+    @Test
+    public void testUpdate() throws Exception {
+        Owner owner = createGeorge();
+        owner.setId(1);
+        mockMvc
+                .perform(put("/owners/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.city", is("Randwick")));
+        jdbcTemplate.update("update owners set city = 'Madison' where id = 1");
+    }
+
+    @Test
+    public void testUpdateNotFound() throws Exception {
+        Owner owner = createGeorge();
+        owner.setId(10000);
+        mockMvc
+                .perform(put("/owners/10000")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(owner)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Not found [Owner [10000] not found]"));
+    }
+
+    private Owner createGeorge() {
+        Owner owner = new Owner();
+        owner.setFirstName("George");
+        owner.setLastName("Franklin");
+        owner.setAddress("110 W. Liberty St.");
+        owner.setCity("Randwick");
+        owner.setTelephone("6085551023");
+        return owner;
     }
 
     private Owner createOwner(String city, String telephone) {
