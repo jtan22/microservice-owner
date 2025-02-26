@@ -55,8 +55,25 @@ public class OwnerController {
     @PostMapping("/owners")
     @ResponseStatus(HttpStatus.CREATED)
     public Owner add(@RequestBody @Valid Owner owner) {
-        log.info("POST add " + owner);
+        log.info("POST add {}", owner);
         return ownerRepository.save(owner);
+    }
+
+    @PutMapping("/owners/{id}")
+    public Owner update(@PathVariable("id") int id, @RequestBody @Valid Owner owner) {
+        log.info("PUT update id [{}], {}", id, owner);
+        Optional<Owner> ownerOptional = ownerRepository.findById(id);
+        if (ownerOptional.isPresent()) {
+            Owner savedOwner = ownerOptional.get();
+            savedOwner.setFirstName(owner.getFirstName());
+            savedOwner.setLastName(owner.getLastName());
+            savedOwner.setAddress(owner.getAddress());
+            savedOwner.setCity(owner.getCity());
+            savedOwner.setTelephone(owner.getTelephone());
+            return ownerRepository.save(savedOwner);
+        } else {
+            throw new OwnerNotFoundException("Owner [" + id + "] not found");
+        }
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
